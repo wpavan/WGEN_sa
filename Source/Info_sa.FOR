@@ -12,8 +12,8 @@ C=======================================================================
 !     FILEIO and RUN needed to generate header for INFO.OUT file
 
       USE ModuleDefs
-      USE ModuleData
-      USE HeaderMod
+!      USE ModuleData
+!      USE HeaderMod
       IMPLICIT NONE
       SAVE
 
@@ -32,25 +32,26 @@ C=======================================================================
       DATA OLDRUN /0/
 
 !-----------------------------------------------------------------------
-!     Suppress INFO.OUT if IDETL = '0' (zero) or 'N' 
-      CALL GET(ISWITCH)
-      IF (INDEX('0N',ISWITCH % IDETL) > 0) RETURN
+!!     Suppress INFO.OUT if IDETL = '0' (zero) or 'N' 
+!      CALL GET(ISWITCH)
+!      IF (INDEX('0N',ISWITCH % IDETL) > 0) RETURN
 
-      CALL GET(CONTROL)
-      FILEIO = CONTROL % FILEIO
-      RUN    = CONTROL % RUN
-      YRDOY  = CONTROL % YRDOY
+!      CALL GET(CONTROL)
+!      FILEIO = CONTROL % FILEIO
+!      RUN    = CONTROL % RUN
+!      YRDOY  = CONTROL % YRDOY
       
 !      IF (INDEX(ERRKEY,'ENDRUN') <= 0) THEN
 !       First time routine is called to print, open file.
 !       File will remain open until program execution is stopped.
         IF (FIRST) THEN
 
-!         Check for IDETL = '0' (zero) --> suppress output
-          CALL GET(ISWITCH)
-          IF (ISWITCH % IDETL == '0') RETURN
+!!         Check for IDETL = '0' (zero) --> suppress output
+!          CALL GET(ISWITCH)
+!          IF (ISWITCH % IDETL == '0') RETURN
 
-          CALL GETLUN('OUTINFO', LUN)
+!          CALL GETLUN('OUTINFO', LUN)
+          LUN = 555
           INQUIRE (FILE = InfoOut, EXIST = FEXIST)
           IF (FEXIST) THEN
             INQUIRE (FILE = InfoOut, OPENED = FOPEN)
@@ -65,21 +66,21 @@ C=======================================================================
 
           WRITE(LUN,'(/,78("*"))')
 !          IF (CONTROL % MULTI > 1) CALL MULTIRUN(RUN, 0)
-          IF (Headers % RUN == RUN) THEN
-            CALL HEADER(SEASINIT, LUN, RUN)
-            FIRST = .FALSE.
-            OLDRUN = RUN
-          ENDIF
+!          IF (Headers % RUN == RUN) THEN
+!            CALL HEADER(SEASINIT, LUN, RUN)
+!            FIRST = .FALSE.
+!            OLDRUN = RUN
+!          ENDIF
         ENDIF
 
         IF (ICOUNT > 0) THEN
-          !Print header if this is a new run.
-          IF (OLDRUN .NE. RUN .AND. RUN .NE. 0 .AND. FILEIO .NE. "")THEN
-            IF (Headers % RUN == RUN) THEN
-              CALL HEADER(SEASINIT,LUN,RUN)
-              OLDRUN = RUN
-            ENDIF
-          ENDIF
+!          !Print header if this is a new run.
+!          IF (OLDRUN .NE. RUN .AND. RUN .NE. 0 .AND. FILEIO .NE. "")THEN
+!            IF (Headers % RUN == RUN) THEN
+!              CALL HEADER(SEASINIT,LUN,RUN)
+!              OLDRUN = RUN
+!            ENDIF
+!          ENDIF
 
 !         Print the INFO.  Message is sent from calling routine as text.
           CALL YR_DOY(YRDOY, YEAR, DOY)
