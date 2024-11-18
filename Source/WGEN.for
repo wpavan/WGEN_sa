@@ -1,5 +1,5 @@
 C=======================================================================
-C  WGEN_SA.FOR contains:
+C  WGEN.FOR contains:
 C    WGEN   - Generates daily weather data for crop models.
 C    WGENIN - Reads inputs from parameter file and creates two matrices:
 C                       inputs and correction factors.
@@ -70,7 +70,7 @@ C          set at 1 m/s.  Later versions will include the appropriate
 C          WGEN/SIMMETEO code to generate these variables.
 C=======================================================================
 
-      SUBROUTINE WGEN_SA(DYNAMIC,
+      SUBROUTINE WGEN(DYNAMIC,
      &      FILEW, MEWTH, RSEED1, YRDOY, YRSIM,         !Input
      &      INSI, RSEED, TAMP, TAV, XELEV, XLAT, XLONG,   !Output
      &      PAR, RAIN, SRAD, TMAX, TMIN)                  !Output
@@ -219,7 +219,7 @@ C     Set default values for dew point temp and windspeed
       ENDIF
 !***********************************************************************
       RETURN
-      END SUBROUTINE WGEN_SA
+      END SUBROUTINE WGEN
 !-----------------------------------------------------------------------
 ! WGEN Variables:
 !-----------------------------------------------------------------------
@@ -264,13 +264,13 @@ C     Set default values for dew point temp and windspeed
 ! SRDSD     SRAD standard deviation for dry day (MJ/m2-d)
 ! SRWMN     SRAD mean value for wet day (MJ/m2-d)
 ! SRWSD     SRAD standard deviation for wet day (MJ/m2-d)
-! TDEW      Dewpoint temperature (°C)
-! TMAX      Maximum daily temperature (°C)
-! TMIN      Minimum daily temperature (°C)
-! TNAMN(12) Minimum temperature mean value (°C)
-! TNASD     Minimum temperature standard deviation (°C)
-! TXDMN     Maximum temperature mean value for dry day (°C)
-! TXDSD     Maximum temperature standard deviation for dry day (°C)
+! TDEW      Dewpoint temperature (ï¿½C)
+! TMAX      Maximum daily temperature (ï¿½C)
+! TMIN      Minimum daily temperature (ï¿½C)
+! TNAMN(12) Minimum temperature mean value (ï¿½C)
+! TNASD     Minimum temperature standard deviation (ï¿½C)
+! TXDMN     Maximum temperature mean value for dry day (ï¿½C)
+! TXDSD     Maximum temperature standard deviation for dry day (ï¿½C)
 ! WETPRV    Switch for previous day's rainfall 0=NONE 1=RAINFALL 
 ! WINDSP    Wind speed (km/d)
 ! XLAT      Latitude (deg.)

@@ -111,7 +111,7 @@ C       Set default values FOR REFHT AND WINDHT
 
           YRDOY = StartDate
 
-          CALL WGEN_SA(DYNAMIC,
+          CALL WGEN(DYNAMIC,
      &      CLIFILE, MEWTH, RSEED1, YRDOY, YRSIM,         !Input
      &      INSI, RSEED, TAMP, TAV, XELEV, XLAT, XLONG,   !Output
      &      PAR, RAIN, SRAD, TMAX, TMIN)                  !Output
@@ -160,7 +160,7 @@ C     Read new weather record.
         RAIN = -99.0
         PAR  = -99.0
 
-      CALL WGEN_SA(DYNAMIC,
+      CALL WGEN(DYNAMIC,
      &      CLIFILE, MEWTH, RSEED1, YRDOY, YRSIM,         !Input
      &      INSI, RSEED, TAMP, TAV, XELEV, XLAT, XLONG,   !Output
      &      PAR, RAIN, SRAD, TMAX, TMIN)                  !Output
@@ -218,11 +218,11 @@ C-----------------------------------------------------------------------
 ! RSEED1     Random number generator seed- user input 
 ! SRAD       Solar radiation (MJ/m2-d)
 ! TAMP       Amplitude of temperature function used to calculate soil 
-!              temperatures (°C)
+!              temperatures (ï¿½C)
 ! TAV        Average annual soil temperature, used with TAMP to calculate 
-!              soil temperature. (°C)
-! TMAX       Maximum daily temperature (°C)
-! TMIN       Minimum daily temperature (°C)
+!              soil temperature. (ï¿½C)
+! TMAX       Maximum daily temperature (ï¿½C)
+! TMIN       Minimum daily temperature (ï¿½C)
 ! WINDHT     Reference height for wind speed (m)
 ! WINDSP     Wind speed (km/d)
 ! XELEV      Field elevation (not used) (m)
