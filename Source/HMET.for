@@ -39,7 +39,7 @@ C=======================================================================
       SUBROUTINE HMET(
      &    CLOUDS, DAYL, DEC, ISINB, PAR, REFHT,           !Input
      &    SNDN, SNUP, S0N, SRAD, TDEW, TMAX,              !Input
-     &    TMIN, WINDHT, WINDSP, XLAT,                     !Input
+     &    TMIN, WINDHT, WINDSP, XLAT, RHMETHOD,           !Input
      &    AMTRH, AZZON, BETA, FRDIFP, FRDIFR, PARHR,      !Output
      &    RADHR, RHUMHR, TAIRHR, TAVG, TDAY, TGRO,        !Output
      &    TGROAV, TGRODY, WINDHR)                         !Output
@@ -52,6 +52,7 @@ C=======================================================================
       IMPLICIT NONE
       EXTERNAL HANG, HTEMP, VPSAT, HWIND, HRAD, FRACD, HPAR
       INTEGER H,NDAY
+      INTEGER RHMETHOD
 
       REAL, DIMENSION(TS) :: AMTRH, AZZON, BETA, FRDIFP, FRDIFR, PARHR
       REAL, DIMENSION(TS) :: RADHR, RHUMHR, TAIRHR, TGRO, WINDHR
@@ -61,6 +62,8 @@ C=======================================================================
      &  TAVG,TDAY,TDEW,TGROAV,TGRODY,TINCR,TMAX,TMIN,
      &  RH,VPSAT,WINDAV,WINDHT,WINDSP,
      &  XLAT
+      
+      REAL PARTONE, PARTTWO, PARTTHR
       PARAMETER (TINCR=24./TS)
 
 !-----------------------------------------------------------------------
@@ -85,8 +88,53 @@ C       Calculate sun angles and hourly weather variables.
      &    DAYL, HS, SNDN, SNUP, TMAX, TMIN,               !Input
      &    TAIRHR(H))                                      !Output
 
-        RH = VPSAT(TDEW) / VPSAT(TAIRHR(H)) * 100.0
-        RHUMHR(H) = MIN(RH,100.0)
+
+! Method 1:
+! Came from original WGEN program and module in DSSAT. Uses equation
+! P_wv/P_sat @ T = RH. VPSAT function exists externally.    
+        IF (RHMETHOD .EQ. 1) THEN
+          RH = VPSAT(TDEW) / VPSAT(TAIRHR(H)) * 100.0
+          RHUMHR(H) = MIN(RH,100.0)
+
+! Method 2:
+! Came from V. Covert's work on desiccation psychrometrics. Uses the 
+! general equation P_wv/P_sat @ T = RH. The method to calculate saturation
+! vapor pressures is algebraically manipulated from:
+! https://doi.org/10.1175/JAMC-D-17-0334.1
+        ELSE IF (RHMETHOD .EQ. 2) THEN
+          PARTONE = 4924.99 / (TAIRHR(H) + 237.1)
+          PARTTWO = 4924.99 / (TDEW + 237.1)
+          PARTTHR = ((TAIRHR(H) + 105) / (TDEW + 105))**1.57
+          RH = EXP(PARTONE - PARTTWO) * PARTTHR
+          RH = 100 * RH
+
+          RHUMHR(H) = MIN(RH,100.0)
+
+! Method 3:
+! Modified from Thiago B.F.'s python code for weather data generation.
+! Uses the same equation as Method 2 for RH, but with recalculated TDEW
+! from [Simulation of assimilation, respiration, and transpiration of 
+! crops] by C. T. de Wit (1978)
+! NOTE: Check reference
+        ELSE IF (RHMETHOD .EQ. 3) THEN
+          TDEW = -0.0108*TMAX + 0.9427*TMIN + 1.0111
+
+          PARTONE = 4924.99 / (TAIRHR(H) + 237.1)
+          PARTTWO = 4924.99 / (TDEW + 237.1)
+          PARTTHR = ((TAIRHR(H) + 105) / (TDEW + 105))**1.57
+          RH = EXP(PARTONE - PARTTWO) * PARTTHR
+          RH = 100 * RH
+
+          RHUMHR(H) = MIN(RH,100.0)
+
+! Method 4:
+! 
+! 
+! 
+
+        ELSE IF (RHMETHOD .EQ. 4) THEN
+          RH = 100
+        ENDIF  
 
         CALL HWIND(
      &    DAYL, HS, SNDN, SNUP, WINDAV,                   !Input

@@ -24,7 +24,8 @@
 !  07/16/2012 CHP Written based on WEATHR.FOR from DSSAT CSM v4.6.1.0
 !-----------------------------------------------------------------------
 !  Called by: Main
-!  Calls:     DAYLEN, ERROR, HMET, IPWTH, SOLAR, WGEN, WTHMDB, WTHMOD
+!  Calls:     DAYLEN, ERROR, HMET, IPWTH, SOLAR, WGEN, WTHMDB, WTHMOD,
+!             CALC_TDEW, YR_DOY
 !=======================================================================
 
       Program Weather_Gen !(CONTROL, ISWITCH, WEATHER, YREND)
@@ -36,17 +37,22 @@
       SAVE
 
       CHARACTER*1  MEWTH    !, RNMODE
+      CHARACTER*3 RHTHRESHOLD_CHR
       CHARACTER*4  INSI
       CHARACTER*6  RHCOLUMNNAME
+      CHARACTER*7 RSEED1_CHR
 !      CHARACTER*6  ERRKEY
       CHARACTER*80 FILEW, CLIFILE, Text
 !      CHARACTER*78 MESSAGE(10)
 !      CHARACTER*80 PATHWT
 !      CHARACTER*92 FILEWW
+      CHARACTER*255 CMDLINE
+
+      INTEGER POS, STATUS
 
       INTEGER YR, YRDOY, YRSIM
       INTEGER RSEED1, RSEED(4)
-      INTEGER DYNAMIC
+      INTEGER DYNAMIC, RHMETHOD
       INTEGER INCDAT, LENGTH, LenString
       INTEGER RHTHRESHOLD, RHHOURSOVER, HR
       INTEGER StartDate, EndDate
@@ -62,6 +68,7 @@
      &  XELEV, XLAT, XLONG
      
       LOGICAL NOTDEW
+      LOGICAL NOTRH
       REAL CALC_TDEW
 
       REAL, DIMENSION(TS) :: AMTRH, AZZON, BETA, FRDIFP, FRDIFR, PARHR
@@ -91,19 +98,97 @@
 !***********************************************************************
         DYNAMIC = 2
 
-        CALL GETARG(1, Text)
-        READ(Text, '(I7)') StartDate
-        CALL GETARG(2, Text)
-        READ(Text, '(I7)') EndDate
-        CALL GETARG(3, Text)
-        READ(Text, '(I7)') RSEED1
-        CALL GETARG(4, MEWTH)
-        CALL GETARG(5, CLIFILE)
-        CALL GETARG(6, Text)
-        READ(Text, '(I7)') RHTHRESHOLD
+        CALL GET_COMMAND(CMDLINE, STATUS)
 
-        LENGTH = LENSTRING(Text)
-        RHCOLUMNNAME = "   "(1:(3-LENGTH)) // "RH" // Text
+        IF (STATUS .NE. 0) THEN
+          WRITE(*,*) STATUS 
+        ENDIF
+
+        POS = INDEX(CMDLINE, "--StartDate=")
+        IF (POS > 0) THEN
+          READ(CMDLINE(POS+12:POS+18), '(I7)') StartDate
+        ELSE 
+          POS = INDEX(CMDLINE, "--SD=")
+          IF (POS > 0) THEN
+            READ(CMDLINE(POS+5:POS+11), '(I7)') StartDate
+          ELSE 
+            WRITE(*,*) "Error: StartDate not found"
+            STOP
+          ENDIF
+        ENDIF
+
+        POS = INDEX(CMDLINE, "--EndDate=")
+        IF (POS > 0) THEN
+          READ(CMDLINE(POS+10:POS+16), '(I7)') EndDate
+        ELSE 
+          POS = INDEX(CMDLINE, "--ED=")
+            IF (POS > 0) THEN
+              READ(CMDLINE(POS+5:POS+11), '(I7)') EndDate
+            ELSE
+              WRITE(*,*) "Error: EndDate not found"
+              STOP
+            ENDIF
+        ENDIF
+
+        POS = INDEX(CMDLINE, "--RSEED1=")
+        IF (POS > 0) THEN
+          READ(CMDLINE(POS+9:POS+15), '(A7)') RSEED1_CHR
+          POS = INDEX(RSEED1_CHR, " ")
+          READ(RSEED1_CHR(1:POS-1), '(I7)') RSEED1
+        ELSE
+          RSEED1 = 1
+        ENDIF
+
+        POS = INDEX(CMDLINE, "--MEWTH=")
+        IF (POS > 0) THEN
+          READ(CMDLINE(POS+8:POS+8), '(A1)') MEWTH
+        ELSE 
+          MEWTH = "W"
+        ENDIF
+
+!     If the RH threshold argument is not passed, do not include real 
+!     RH values in the output column
+        POS = INDEX(CMDLINE, "--RHTHRESHOLD=")
+        IF (POS > 0) THEN
+          NOTRH = .FALSE.
+          READ(CMDLINE(POS+14:POS+20), '(I3)') RHTHRESHOLD
+          WRITE(RHTHRESHOLD_CHR, '(I0)') RHTHRESHOLD
+          LENGTH = LENSTRING(RHTHRESHOLD_CHR)
+          RHCOLUMNNAME = "   "(1:(3-LENGTH)) // "RH" // RHTHRESHOLD_CHR
+        ELSE 
+          NOTRH = .TRUE.
+          RHCOLUMNNAME = " RHXX"
+        ENDIF
+
+        POS = INDEX(CMDLINE, "--RHMETHOD=")
+        IF (POS > 0) THEN
+          READ(CMDLINE(POS+11:POS+11), '(I1)') RHMETHOD
+        ENDIF
+
+        POS = INDEX(CMDLINE, "--CLIFILE=")
+        IF (POS > 0) THEN
+          READ(CMDLINE(POS+10:POS+40), '(A)') CLIFILE
+          POS = INDEX(CLIFILE, " -")
+          READ(CLIFILE(1:POS-1), '(A)') CLIFILE
+        ELSE
+          POS = INDEX(CMDLINE, "--CLI=")
+            IF (POS > 0) THEN
+              READ(CMDLINE(POS+6:POS+36), '(A)') CLIFILE
+              POS = INDEX(CLIFILE, " -")
+              READ(CLIFILE(1:POS-1), '(A)') CLIFILE
+            ENDIF
+        ENDIF
+
+!        CALL GETARG(1, Text)
+!        READ(Text, '(I7)') StartDate
+!        CALL GETARG(2, Text)
+!        READ(Text, '(I7)') EndDate
+!        CALL GETARG(3, Text)
+!        READ(Text, '(I7)') RSEED1
+!        CALL GETARG(4, MEWTH)
+!        CALL GETARG(5, CLIFILE)
+!        CALL GETARG(6, Text)
+!        READ(Text, '(I7)') RHTHRESHOLD
 
         LENGTH = LENSTRING(CLIFILE)
         FILEW = CLIFILE(1:LENGTH-4) // ".WTG"
@@ -224,16 +309,22 @@ C     Calculate hourly weather data.
       CALL HMET(
      &    CLOUDS, DAYL, DEC, ISINB, PAR, REFHT,           !Input
      &    SNDN, SNUP, S0N, SRAD, TDEW, TMAX,              !Input
-     &    TMIN, WINDHT, WINDSP, XLAT,                     !Input
+     &    TMIN, WINDHT, WINDSP, XLAT, RHMETHOD,           !Input
      &    AMTRH, AZZON, BETA, FRDIFP, FRDIFR, PARHR,      !Output
      &    RADHR, RHUMHR, TAIRHR, TAVG, TDAY, TGRO,        !Output
      &    TGROAV, TGRODY, WINDHR)                         !Output
 
-      DO HR = 1, TS
+!     Check if the argument for relative humidity was passed 
+!       and only evaluate if so.
+      IF (NOTRH .EQV. .FALSE.) THEN
+        DO HR = 1, TS
           IF (RHUMHR(HR) .GE. RHTHRESHOLD) THEN
-              RHHOURSOVER = RHHOURSOVER + 1
+            RHHOURSOVER = RHHOURSOVER + 1
           ENDIF
-      ENDDO
+        ENDDO
+      ELSE
+        RHHOURSOVER = -99
+      ENDIF
 
 !***********************************************************************
 !***********************************************************************
@@ -263,35 +354,47 @@ C-----------------------------------------------------------------------
 !***********************************************************************
 ! WEATHR Variables
 !-----------------------------------------------------------------------
-! CO2        Atmospheric carbon dioxide concentration (ppm)
-! ERRKEY     Subroutine name for error file 
-! FILEW      Weather data file 
-! MEWTH      Switch for method of obtaining weather data-- 'G' or 'M'- read 
-!              weather data file 'S'- read SIMMETEO inputs and generate 
-!              weather data 'W'- read WGEN inputs and generate weather data 
-! PAR        Daily photosynthetically active radiation or photon flux 
-!              density (moles[quanta]/m2-d)
-! RAIN       Precipitation depth for current day (mm)
-! REFHT      Reference height for wind speed (m)
-! RHUM       Relative humidity (%)
-! RSEED(4)   Random number generator seeds 
-! RSEED1     Random number generator seed- user input 
-! SRAD       Solar radiation (MJ/m2-d)
-! TAMP       Amplitude of temperature function used to calculate soil 
-!              temperatures (�C)
-! TAV        Average annual soil temperature, used with TAMP to calculate 
-!              soil temperature. (�C)
-! TMAX       Maximum daily temperature (�C)
-! TMIN       Minimum daily temperature (�C)
-! WINDHT     Reference height for wind speed (m)
-! WINDSP     Wind speed (km/d)
-! XELEV      Field elevation (not used) (m)
-! XLAT       Latitude (deg.)
-! XLONG      Longitude (deg.)
-! YR_DOY     Function subroutoine converts date in YYYYDDD format to integer 
-!              year (YY) and day (DDD). 
-! YRDOY      Current day of simulation (YYYYDDD)
-! YRSIM      Start of simulation date (YYYYDDD)
+! CO2          Atmospheric carbon dioxide concentration (ppm).
+! ERRKEY       Subroutine name for error file.
+! FILEW        Weather data file.
+! HR           Index variable referring to the ordinal hour of the day. 
+! MEWTH        Switch for method of obtaining weather data-- 'G' or 'M'-
+!                read weather data file 'S'- read SIMMETEO inputs and 
+!                generate weather data 'W'- read WGEN inputs and 
+!                generate weather data. 
+! NOTRH        Logical flag indicating if the argument for relative
+!                humidity threshold was not passed.
+! PAR          Daily photosynthetically active radiation or photon flux 
+!                density (moles[quanta]/m2-d).
+! RAIN         Precipitation depth for current day (mm).
+! REFHT        Reference height for wind speed (m).
+! RHUM         Relative humidity (%).
+! RHTHRESHOLD  Relative humidity threshold over which an hour will be 
+!                counted in RHHOURSOVER (%).
+! RHHOURSOVER  Number of hours with relative humidity over RHTHRESHOLD.
+!                (hr).
+! RHCOLUMNNAME Name of column which holds RHHOURSOVER values. 
+!                Dynamically includes the threshold for readability. 
+!                Takes the form of RHXX where XX = the RHTHRESHOLD. 
+!                ex. RH90 = # of hours over 90% relative humidity
+! RSEED(4)     Random number generator seeds. 
+! RSEED1       Random number generator seed- user input.
+! SRAD         Solar radiation (MJ/m2-d).
+! TAMP         Amplitude of temperature function used to calculate soil 
+!                temperatures (�C).
+! TAV          Average annual soil temperature, used with TAMP to 
+!                calculate soil temperature. (�C).
+! TMAX         Maximum daily temperature (�C).
+! TMIN         Minimum daily temperature (�C).
+! WINDHT       Reference height for wind speed (m).
+! WINDSP       Wind speed (km/d).
+! XELEV        Field elevation (not used) (m).
+! XLAT         Latitude (deg.).
+! XLONG        Longitude (deg.).
+! YR_DOY       Function subroutoine converts date in YYYYDDD format to 
+!                integers year (YY) and day (DDD). 
+! YRDOY        Current day of simulation (YYYYDDD).
+! YRSIM        Start of simulation date (YYYYDDD).
 !***********************************************************************
 !***********************************************************************
 
