@@ -31,6 +31,7 @@ C  03/15/2000 GH  Modular version revisited
 C  02/10/2006 JIL New calculation of fraction of diffuse radiation
 C  02/13/2006 JIL Export AMTRH (R/R0) for leaf rolling calculation
 C  10/02/2007 JIL New calculation of PARHR
+C  01/09/2025 VC  Added new methods for RH calculation
 C-----------------------------------------------------------------------
 c  Called by: WEATHR
 C  Calls:     HANG, HTEMP, HRAD, FRACD, HPAR
@@ -115,9 +116,10 @@ C       Calculate sun angles and hourly weather variables.
 ! Uses the same equation as Method 2 for RH, but with recalculated TDEW
 ! from [Simulation of assimilation, respiration, and transpiration of 
 ! crops] by C. T. de Wit (1978)
-! NOTE: Check reference
         ELSE IF (RHMETHOD .EQ. 3) THEN
+!          WRITE(*,*) TDEW
           TDEW = -0.0108*TMAX + 0.9427*TMIN + 1.0111
+!          WRITE(*,*) TDEW
 
           PARTONE = 4924.99 / (TAIRHR(H) + 237.1)
           PARTTWO = 4924.99 / (TDEW + 237.1)

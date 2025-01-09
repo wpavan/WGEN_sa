@@ -6,7 +6,8 @@ C  REVISION       HISTORY
 C  02/08/2002 CHP Written
 C  06/06/2002 GH  Modified for crop rotations
 C  08/20/2002 GH  Modified for Y2K
-!  07/16/2012 CHP Modified for stand-alone weather generator.
+C  07/16/2012 CHP Modified for stand-alone weather generator.
+C  12/17/2024 VC  Added hours of relative humidity over x% to output.
 C-----------------------------------------------------------------------
 C  Called from:   WEATHR
 C  Calls:         None

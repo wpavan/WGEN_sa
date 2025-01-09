@@ -22,13 +22,16 @@
 !-----------------------------------------------------------------------
 !  REVISION HISTORY
 !  07/16/2012 CHP Written based on WEATHR.FOR from DSSAT CSM v4.6.1.0
+!  12/17/2024 VC  Added RH threshold in .WTG output.
+!  01/09/2025 VC  Updated to allow for named argument passing, help, and 
+!                 methods for rh calculation.
 !-----------------------------------------------------------------------
 !  Called by: Main
-!  Calls:     DAYLEN, ERROR, HMET, IPWTH, SOLAR, WGEN, WTHMDB, WTHMOD,
+!  Calls:     DAYLEN, HMET, IPWTH, SOLAR, WGEN, WTHMDB, WTHMOD,
 !             CALC_TDEW, YR_DOY
 !=======================================================================
 
-      Program Weather_Gen !(CONTROL, ISWITCH, WEATHER, YREND)
+      Program Weather_Gen 
 
 !-----------------------------------------------------------------------
       USE ModuleDefs   
@@ -36,16 +39,14 @@
       EXTERNAL CALC_TDEW, HMET, SOLAR, YR_DOY
       SAVE
 
-      CHARACTER*1  MEWTH    !, RNMODE
+      CHARACTER*1  MEWTH  
       CHARACTER*3 RHTHRESHOLD_CHR
       CHARACTER*4  INSI
       CHARACTER*6  RHCOLUMNNAME
       CHARACTER*7 RSEED1_CHR
-!      CHARACTER*6  ERRKEY
-      CHARACTER*80 FILEW, CLIFILE, Text
-!      CHARACTER*78 MESSAGE(10)
-!      CHARACTER*80 PATHWT
-!      CHARACTER*92 FILEWW
+
+      CHARACTER*80 FILEW, CLIFILE
+
       CHARACTER*255 CMDLINE
 
       INTEGER POS, STATUS
@@ -74,23 +75,8 @@
       REAL, DIMENSION(TS) :: AMTRH, AZZON, BETA, FRDIFP, FRDIFR, PARHR
       REAL, DIMENSION(TS) :: RADHR, RHUMHR, TAIRHR, TGRO, WINDHR
 
-!      PARAMETER (ERRKEY = 'WEATHR')
-      PARAMETER (PI=3.14159, RAD=2.0*PI/365.0)
 
-!!     The variable "CONTROL" is of constructed type "ControlType" as 
-!!     defined in ModuleDefs.for, and contains the following variables.
-!!     The components are copied into local variables for use here.
-!      TYPE (ControlType) CONTROL
-!      TYPE (SwitchType) ISWITCH
-!      TYPE (WeatherType) WEATHER
-!
-!      DYNAMIC = CONTROL % DYNAMIC 
-!      MULTI   = CONTROL % MULTI   
-!      RUN     = CONTROL % RUN    
-!      RNMODE  = CONTROL % RNMODE  
-!      REPNO   = CONTROL % REPNO  
-!      YRDOY   = CONTROL % YRDOY   
-!      YRSIM   = CONTROL % YRSIM   
+      PARAMETER (PI=3.14159, RAD=2.0*PI/365.0)
 
 !***********************************************************************
 !***********************************************************************
@@ -179,17 +165,6 @@
             ENDIF
         ENDIF
 
-!        CALL GETARG(1, Text)
-!        READ(Text, '(I7)') StartDate
-!        CALL GETARG(2, Text)
-!        READ(Text, '(I7)') EndDate
-!        CALL GETARG(3, Text)
-!        READ(Text, '(I7)') RSEED1
-!        CALL GETARG(4, MEWTH)
-!        CALL GETARG(5, CLIFILE)
-!        CALL GETARG(6, Text)
-!        READ(Text, '(I7)') RHTHRESHOLD
-
         LENGTH = LENSTRING(CLIFILE)
         FILEW = CLIFILE(1:LENGTH-4) // ".WTG"
 !-----------------------------------------------------------------------
@@ -210,7 +185,6 @@ C       Set default values FOR REFHT AND WINDHT
      &      CLIFILE, MEWTH, RSEED1, YRDOY, YRSIM,         !Input
      &      INSI, RSEED, TAMP, TAV, XELEV, XLAT, XLONG,   !Output
      &      PAR, RAIN, SRAD, TMAX, TMIN)                  !Output
-     &             
 
           IF (TAV  .LE. 0.0) THEN       
             TAV = 20.0
@@ -220,21 +194,11 @@ C       Set default values FOR REFHT AND WINDHT
             TAMP = 5.0
           ENDIF
 
-!     Subroutine to determine daily CO2
-!      CALL CO2VAL(DYNAMIC, YRSIM, YRDOY, CO2)
-
 C     Calculate daily solar parameters.
       CALL SOLAR(
      &    DAYL, DEC, SRAD, XLAT,                          !Input
      &    CLOUDS, ISINB, S0N)                             !Output
 
-!C     Adjust wind speed from reference height to 2m height.
-!      IF (WINDSP > 0.0) THEN
-!        WINDSP = WINDSP * (2.0 / WINDHT) ** 2.0
-!      ELSE
-!        WINDSP = 86.4
-!      ENDIF
-!
       CALL OpWeath(DYNAMIC, YRDOY, FILEW,
      &    INSI, XLAT, XLONG, XELEV, TAV, TAMP, REFHT, WINDHT,           !Station
      &    CO2, PAR, RAIN, RHCOLUMNNAME, RHHOURSOVER, SRAD, TMAX, TMIN)  !Daily values
