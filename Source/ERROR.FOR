@@ -181,7 +181,7 @@ C                                                                !BDB
          WRITE (ELUN,60)  FILE, LNUM, ERRKEY   
          WRITE (MSG(IMSG),60) FILE, LNUM, ERRKEY
          IMSG = IMSG + 1
-   60    FORMAT('File: ',A12,'   Line: ',I5,' Error key: ',A)
+   60    FORMAT('File: ',A50,'   Line: ',I5,' Error key: ',A)
 !      ENDIF
 
       WRITE(ELUN,70)

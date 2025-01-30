@@ -6,14 +6,15 @@ C  REVISION       HISTORY
 C  02/08/2002 CHP Written
 C  06/06/2002 GH  Modified for crop rotations
 C  08/20/2002 GH  Modified for Y2K
-!  07/16/2012 CHP Modified for stand-alone weather generator.
+C  07/16/2012 CHP Modified for stand-alone weather generator.
+C  12/17/2024 VC  Added hours of relative humidity over x% to output.
 C-----------------------------------------------------------------------
 C  Called from:   WEATHR
 C  Calls:         None
 C=======================================================================
       SUBROUTINE OpWeath(DYNAMIC, YRDOY, FILEW,
-     &    INSI, XLAT, XLONG, XELEV, TAV, TAMP, REFHT, WiNDHT,   !Station
-     &    CO2, PAR, RAIN, SRAD, TMAX, TMIN)  !Daily values
+     &    INSI, XLAT, XLONG, XELEV, TAV, TAMP, REFHT, WiNDHT,           !Station
+     &    CO2, PAR, RAIN, RHCOLUMNNAME, RHHOURSOVER, SRAD, TMAX, TMIN)  !Daily values
 
 !-----------------------------------------------------------------------
       USE ModuleDefs     !Definitions of constructed variable types, 
@@ -23,10 +24,12 @@ C=======================================================================
       SAVE
 
       CHARACTER*4   INSI
+      CHARACTER*6   RHCOLUMNNAME
       CHARACTER*6,  PARAMETER :: ERRKEY = 'OPWTHR'
-      CHARACTER*12  FILEW
+      CHARACTER*48  DAILYFORMAT 
+      CHARACTER*80  FILEW
 
-      INTEGER DYNAMIC, ERRNUM, LUN, YRDOY, YYDDD
+      INTEGER DYNAMIC, ERRNUM, LUN, YRDOY, YYDDD, RHHOURSOVER
 
       REAL CO2, PAR, RAIN, SRAD, TMAX, TMIN
       REAL XLAT, XLONG, XELEV, TAV, TAMP, REFHT, WiNDHT
@@ -80,7 +83,7 @@ C=======================================================================
 
 !          WRITE(LUN,'("*WEATHER MODULE DAILY OUTPUT FILE")')
 !        ENDIF
-
+!
 !        IF (RNMODE .NE. 'Q' .OR. RUN .EQ. 1) THEN
 !          !For first run of a sequenced run, use replicate
 !          ! number instead of run number in header.
@@ -93,8 +96,11 @@ C=======================================================================
           WRITE (LUN,120) INSI, XLAT, XLONG,XELEV, TAV,TAMP,REFHT,WiNDHT
   120     FORMAT('*WEATHER DATA : ',//,
      &      '@ INSI      LAT     LONG  ELEV   TAV   AMP REFHT WNDHT',/,
-     &      2X, A4, 2F9.3, F6.0, 2F6.1, 2F6.2, /,
-     &      '@DATE  SRAD  TMAX  TMIN  RAIN   PAR  CO2D')
+     &      2X, A4, 2F9.3, F6.0, 2F6.1, 2F6.2, /)
+     
+          DAILYFORMAT = '@DATE  SRAD  TMAX  TMIN  RAIN   PAR  CO2D ' // 
+     &      RHCOLUMNNAME
+          WRITE (LUN, '(A)') DAILYFORMAT
 !        ENDIF
 
 !***********************************************************************
@@ -117,8 +123,8 @@ C       Generate output for file Weather.OUT
 !          CALL YR_DOY(YRDOY, YEAR, DOY)
           !Daily printout
           YYDDD = MOD(YRDOY,100000)
-          WRITE (LUN,('(I5, 8F6.1)')) YYDDD, SRAD, TMAX, TMIN, RAIN, 
-     &          PAR, CO2
+          WRITE (LUN,('(I5, 6F6.1, I6)')) YYDDD, SRAD, TMAX, TMIN, RAIN, 
+     &          PAR, CO2, RHHOURSOVER
 !        ENDIF
 
         IF (DYNAMIC .EQ. SEASEND) THEN

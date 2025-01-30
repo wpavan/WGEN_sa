@@ -86,7 +86,7 @@ C=======================================================================
       CHARACTER*1 MEWTH !, RNMODE
       CHARACTER*4 INSI
       CHARACTER*6 ERRKEY
-      CHARACTER*12 FILEW
+      CHARACTER*80 FILEW
       CHARACTER*80 PATHWT
 
       INTEGER DOY,I,M,NM,MTH,MM,YY,YR,YRDOY,YRSIM,YMID,YMEND,
@@ -323,7 +323,7 @@ C=======================================================================
 !      USE ModuleData
       IMPLICIT NONE
 
-      CHARACTER BLANK*1,FILEW*12,FILEWW*92,LINE*100, INSI*4
+      CHARACTER BLANK*1,FILEW*80,FILEWW*92,LINE*100, INSI*4
       CHARACTER*6 ERRKEY,FINDCH
       CHARACTER*8 WSTAT
       CHARACTER*80 PATHWT
@@ -458,7 +458,7 @@ C=======================================================================
 !      USE ModuleData
       IMPLICIT NONE
 
-      CHARACTER BLANK*1,FILEW*12,FILEWW*92,LINE*100, INSI*4
+      CHARACTER BLANK*1,FILEW*80,FILEWW*92,LINE*100, INSI*4
       CHARACTER*6 ERRKEY,FINDCH
       CHARACTER*8 WSTAT
       CHARACTER*80 PATHWT

@@ -67,3 +67,5 @@ Plant/ORYZA
 .vs/*
 .history/*
 Resources/R*
+.Rproj.user
+wd/

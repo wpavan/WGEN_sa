@@ -59,7 +59,7 @@ ENDIF(APPLE)
 
 ##########################################################################################
 
-# Add our local modlues to the module path
+# Add our local modules to the module path
 SET(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake/Modules/")
 
 # Organize output files.  On Windows this also keeps .dll files next
@@ -92,18 +92,30 @@ ENDIF(FCNAME STREQUAL "pgf90")
 set(
     source_list
     	"ModuleDefs.for"	
-        "DATES.FOR"		
-        "Info.FOR"		
-        "OPWEATH.FOR"		
-        "UTILS.FOR"		
-        "Warning.FOR"
-        "CO2VAL.FOR"		
-        "ERROR.FOR"        
-        "READS.FOR"		
-        "WGEN.for"		
-        "Weather_Gen.for"
+      "HMET.for"
+      "SOLAR.for"
+      "DATES.FOR"		
+      "Info.FOR"		
+      "OPWEATH.FOR"		
+      "UTILS.FOR"		
+      "Warning.FOR"
+      "CO2VAL.FOR"		
+      "ERROR.FOR"        
+      "READS.FOR"		
+      "WGEN.for"		
+      "Weather_Gen.for"
 )
+
+# NEW: set EXECUTABLE_NAME to a value
+set(EXECUTABLE_NAME WGEN_sa)
+
 ADD_EXECUTABLE(${EXECUTABLE_NAME} ${source_list})
+
+# NEW: handle .mod files differently
+set_property(TARGET ${EXECUTABLE_NAME} PROPERTY Fortran_MODULE_DIRECTORY ${CMAKE_Fortran_MODULE_DIRECTORY})
+
+# NEW: Ensure the compiler can find the .mod files
+include_directories(${CMAKE_Fortran_MODULE_DIRECTORY})
 
 foreach(source IN LISTS source_list)
     get_filename_component(source_path "${source}" PATH)
