@@ -8,11 +8,7 @@
 7. Run the code as example below
 
 # Execution
-Navigate to the executable folder (```WGEN_sa/Executable/WGEN_sa.exe```) and run with the following command line arguments:
-StartDate EndDate RandomSeed Mode PathToCLI RHThreshold
-
-## Example:
-```>> WGEN_sa.exe --StartDate=1979001 --EndDate=1989001 --RSEED1=1 --MEWTH=W --CLIFILE=../Data/CHER.CLI --RHTHRESHOLD=95 --RHMETHOD=3```
+Navigate to the execution folde and run with the following command line arguments:
 
 --StartDate: Start date (I7), 
 
@@ -34,5 +30,7 @@ StartDate EndDate RandomSeed Mode PathToCLI RHThreshold
 
    Method 3: Uses the same equations as Method 2 for RH, but with recalculated TDEW from [Simulation of assimilation, respiration, and transpiration of crops] by C. T. de Wit (1978)
 
+## Example:
+```>> WGEN_sa.exe --StartDate=1979001 --EndDate=1989001 --RSEED1=1 --MEWTH=W --CLIFILE=../Data/CHER.CLI --RHTHRESHOLD=95 --RHMETHOD=3```
    
 The output file will be created in same directory as the .CLI file with the same name as the .CLI file. In the example above, ```WGEN_sa\Data\CHER.WTG``` will be created.
