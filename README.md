@@ -1,5 +1,14 @@
+# Compile
+1. Make a clone of the repository.
+2. Create a "build" folder inside the "Source" folder.
+3. Change directory to "build" folder
+4. Execute the CMake: cmake ..
+5. Create a folder for execution, like "Exec" anyware.
+6. Copy the executable "build/bin/WGEN_sa" to the execution folder
+7. Run the code as example below
+
 # Execution
-Navigate to the executable (```WGEN_sa/Executable/WGEN_sa.exe```) and run with the following command line arguments:
+Navigate to the executable folder (```WGEN_sa/Executable/WGEN_sa.exe```) and run with the following command line arguments:
 StartDate EndDate RandomSeed Mode PathToCLI RHThreshold
 
 ## Example:
